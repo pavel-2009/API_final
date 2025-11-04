@@ -1,0 +1,7 @@
+requests
+django
+djangorestframework
+PyJWT
+pytest
+pytest-django
+pytest-pythonpath
