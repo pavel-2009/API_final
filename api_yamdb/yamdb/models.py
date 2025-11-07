@@ -8,7 +8,6 @@ class User(AbstractUser):
     bio = models.TextField(blank=True)
     role = models.CharField(max_length=50, default='user')
 
-
 class Category(models.Model):
     name = models.CharField(max_length=256)
     slug = models.SlugField(unique=True)
