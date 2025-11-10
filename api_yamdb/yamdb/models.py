@@ -38,7 +38,7 @@ class Titles(models.Model):
     )
 
 class Review(models.Model):
-    book = models.ForeignKey(
+    title = models.ForeignKey(
         Titles,
         on_delete=models.CASCADE,
         related_name='reviews'

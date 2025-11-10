@@ -34,10 +34,9 @@ class TitleSerializer(serializers.ModelSerializer):
         
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        if representation['year'] == None:
-            representation['year'] = 0
-        if representation['rating'] == None:
-            representation['rating'] = 0
+        for key, value in representation.items():
+            if not value:
+                representation[key] = 0
         return representation
     
     def validate(self, attrs):
@@ -46,3 +45,15 @@ class TitleSerializer(serializers.ModelSerializer):
         return attrs
         
 
+class ReviewSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Review
+        fields = ['id', 'text', 'author', 'score', 'pub_date']
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        for key, value in representation.items():
+            if not value:
+                representation[key] = 0
+        return representation
