@@ -7,6 +7,7 @@ from . import views
 router = DefaultRouter()
 router.register('categories', views.CategoryViewSet, 'categories')
 router.register('genres', views.GenreViewSet, 'genres')
+router.register('titles', views.TitleViewSet, 'titles')
 
 urlpatterns = [
     path('api/', include((router.urls, 'api'), namespace='api')),
