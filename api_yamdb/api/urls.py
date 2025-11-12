@@ -10,12 +10,16 @@ router.register('categories', views.CategoryViewSet, 'categories')
 router.register('genres', views.GenreViewSet, 'genres')
 router.register('titles', views.TitleViewSet, 'titles')
 
-nested_router = NestedSimpleRouter(router, r'titles', lookup='title')
-nested_router.register('reviews', views.ReviewViewSet, basename='reviews')
+reviews_router = NestedSimpleRouter(router, r'titles', lookup='title')
+reviews_router.register('reviews', views.ReviewViewSet, basename='reviews')
+
+comments_router = NestedSimpleRouter(reviews_router, r'reviews', lookup='review')
+comments_router.register('comments', views.CommentViewSet, basename='comments')
 
 urlpatterns = [
     path('api/', include(router.urls)),
-    path('api/', include(nested_router.urls)),
+    path('api/', include(reviews_router.urls)),
+    path('api/', include(comments_router.urls)),
     path('auth/token/', TokenObtainPairView.as_view(), name='token'),
 ]
 

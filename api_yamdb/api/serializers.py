@@ -50,10 +50,40 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Review
         fields = ['id', 'text', 'author', 'score', 'pub_date']
+        extra_kwargs = {
+            'text': {'required': True},
+            'score': {'required': True},
+            'author': {'read_only': True},  
+            'title': {'read_only': True},   
+        }
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         for key, value in representation.items():
-            if not value:
+            if value is None and isinstance(value, (int, float)):
+                representation[key] = 0
+        return representation
+
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        slug_field = 'username',
+        read_only = True
+    )
+
+    class Meta:
+        model = models.Comment
+        fields = ['id', 'text', 'author', 'pub_date']
+        extra_kwargs = {
+            'text': {'required': True},
+            'author': {'read_only': True},  
+            'title': {'read_only': True},   
+        }
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        for key, value in representation.items():
+            if value is None and isinstance(value, (int, float)):
                 representation[key] = 0
         return representation

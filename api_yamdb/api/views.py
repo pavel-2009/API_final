@@ -28,16 +28,30 @@ class TitleViewSet(ModelViewSet):
     queryset = models.Titles.objects.all()
     serializer_class = serializers.TitleSerializer
 
-#TODO: доделать: сделать нормальный срок токена, настроить поля и все такое
+
 class ReviewViewSet(ModelViewSet):
     serializer_class = serializers.ReviewSerializer
 
     def get_queryset(self):
-        title = self.kwargs.get('title')
-        objects = get_object_or_404(models.Review, pk=title)
-        return objects
+        title = self.kwargs.get('title_pk')
+        objects = get_object_or_404(models.Titles, pk=title)
+        return objects.reviews.all()
     
     def perform_create(self, serializer):
-        title_id = self.kwargs.get('title')
-        title = get_object_or_404(models.Title, pk=title_id)
+        title_id = self.kwargs.get('title_pk')
+        title = get_object_or_404(models.Titles, pk=title_id)
         serializer.save(author=self.request.user, title=title)
+
+
+class CommentViewSet(ModelViewSet):
+    serializer_class = serializers.CommentSerializer
+
+    def get_queryset(self):
+        review = self.kwargs.get('review_pk')
+        objects = get_object_or_404(models.Review, pk=review)
+        return objects.comments.all()
+    
+    def perform_create(self, serializer):
+        review_id = self.kwargs.get('review_pk')
+        review = get_object_or_404(models.Review, pk=review_id)
+        serializer.save(author=self.request.user, review=review)
