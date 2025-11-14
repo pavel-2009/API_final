@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from random import randint
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
@@ -7,6 +8,20 @@ class User(AbstractUser):
     last_name = models.CharField(max_length=150, blank=True)
     bio = models.TextField(blank=True)
     role = models.CharField(max_length=50, default='user')
+
+
+class EmailCode(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @staticmethod
+    def get_code():
+        return str(randint(100000, 999999))
+    
+    def __str__(self):
+        return f"{self.code}"
+
 
 class Category(models.Model):
     name = models.CharField(max_length=256)
