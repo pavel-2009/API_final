@@ -1,4 +1,7 @@
 from rest_framework import serializers
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.core.mail import send_mail
+from djoser.serializers import TokenCreateSerializer
 from datetime import datetime
 
 from yamdb import models
@@ -87,3 +90,68 @@ class CommentSerializer(serializers.ModelSerializer):
             if value is None and isinstance(value, (int, float)):
                 representation[key] = 0
         return representation
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.User
+        fields = ['username', 'email', 'first_name', 'last_name', 'bio', 'role']
+        extra_kwargs = {
+            'username': {'required': True},
+            'email': {'required': True}
+        }
+
+
+class RegisterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.User
+        fields = ['username','email']
+
+    def create(self, validated_data):
+        user = models.User.objects.create(username=validated_data['username'], email=validated_data['email'])
+        user.set_unusable_password()
+        user.save()
+
+        code = models.EmailCode.get_code()
+        models.EmailCode.objects.create(user=user, code=code)
+
+        send_mail(
+            "Your confirmation code",
+            f"Your code: {str(code)}",
+            "noreply@example.com",
+            [user.email],
+        )
+
+        return user
+
+
+class TokenSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    code = serializers.CharField(min_length=6, max_length=6)
+
+    def validate(self, attrs):
+        username = attrs.get("username")
+        code = attrs.get("code")
+
+        try:
+            user = models.User.objects.get(username=username)
+        except models.User.DoesNotExist:
+            raise serializers.ValidationError("Пользователь не найден")
+
+        try:
+            user_code = models.EmailCode.objects.get(user=user)
+        except models.EmailCode.DoesNotExist:
+            raise serializers.ValidationError("Код для пользователя не найден")
+
+        if user_code.code != code:
+            raise serializers.ValidationError("Неверный код")
+
+        self.user = user
+        return attrs
+
+    def create_token(self):
+        refresh = RefreshToken.for_user(self.user)
+        return {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token)
+        }

@@ -1,6 +1,10 @@
 from django.shortcuts import render, get_object_or_404
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.exceptions import MethodNotAllowed
+from rest_framework import permissions
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 
 from yamdb import models
 from . import serializers
@@ -55,3 +59,28 @@ class CommentViewSet(ModelViewSet):
         review_id = self.kwargs.get('review_pk')
         review = get_object_or_404(models.Review, pk=review_id)
         serializer.save(author=self.request.user, review=review)
+
+
+class UserViewSet(ModelViewSet):
+    serializer_class = serializers.UserSerializer
+    queryset = models.User.objects.all()
+    permission_classes = (permissions.IsAuthenticated,)
+
+
+class RegisterView(APIView):
+    permission_classes = tuple()
+
+    def post(self, request):
+        serializer = serializers.RegisterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()  
+        return Response({'username': user.username, 'email': user.email}, status=status.HTTP_201_CREATED)
+
+class TokenByCodeView(APIView):
+    permission_classes = []
+
+    def post(self, request):
+        serializer = serializers.TokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        tokens = serializer.create_token()
+        return Response(tokens, status=status.HTTP_200_OK)
