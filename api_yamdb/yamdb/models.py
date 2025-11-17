@@ -3,11 +3,20 @@ from django.contrib.auth.models import AbstractUser
 from random import randint
 
 class User(AbstractUser):
+    class Role(models.TextChoices):
+        USER = 'user', 'User'
+        MODERATOR = 'moderator', 'Moderator'
+        ADMIN = 'admin', 'Admin'
+
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=30, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
     bio = models.TextField(blank=True)
-    role = models.CharField(max_length=50, default='user')
+    role = models.CharField(
+        max_length=20,
+        choices=Role.choices,
+        default=Role.USER
+    )
 
 
 class EmailCode(models.Model):

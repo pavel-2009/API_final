@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.exceptions import NotFound
 from django.core.mail import send_mail
-from djoser.serializers import TokenCreateSerializer
 from datetime import datetime
 
 from yamdb import models
@@ -108,6 +108,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ['username','email']
 
     def create(self, validated_data):
+        if validated_data['username'] == 'me':
+            raise serializers.ValidationError("Использование 'me' в качестве username запрещено.")
         user = models.User.objects.create(username=validated_data['username'], email=validated_data['email'])
         user.set_unusable_password()
         user.save()
@@ -145,6 +147,7 @@ class TokenSerializer(serializers.Serializer):
 
         if user_code.code != code:
             raise serializers.ValidationError("Неверный код")
+
 
         self.user = user
         return attrs

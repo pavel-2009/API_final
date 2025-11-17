@@ -18,11 +18,11 @@ comments_router = NestedSimpleRouter(reviews_router, r'reviews', lookup='review'
 comments_router.register('comments', views.CommentViewSet, basename='comments')
 
 urlpatterns = [
-    path('api/', include(router.urls)),
-    path('api/', include(reviews_router.urls)),
-    path('api/', include(comments_router.urls)),
-    path('auth/token/', views.TokenByCodeView.as_view(), name='token'),
-    path('auth/signup/', views.RegisterView.as_view(), name='signup')
+    path('api/v1/', include(router.urls)),
+    path('api/v1/', include(reviews_router.urls)),
+    path('api/v1/', include(comments_router.urls)),
+    path('api/v1/auth/token/', views.TokenByCodeView.as_view(), name='token'),
+    path('api/v1/auth/signup/', views.RegisterView.as_view(), name='signup'),
 ]
 
 
