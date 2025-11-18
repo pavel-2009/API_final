@@ -31,22 +31,34 @@ class GenreViewSet(ModelViewSet):
 
 
 class TitleViewSet(ModelViewSet):
-    queryset = models.Titles.objects.all()
+    queryset = models.Title.objects.all()
     serializer_class = serializers.TitleSerializer
 
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = serializers.ReviewSerializer
+    permission_classes = (custom_permissions.IsNotUser,)
 
     def get_queryset(self):
         title = self.kwargs.get('title_pk')
-        objects = get_object_or_404(models.Titles, pk=title)
+        objects = get_object_or_404(models.Title, pk=title)
         return objects.reviews.all()
     
     def perform_create(self, serializer):
         title_id = self.kwargs.get('title_pk')
-        title = get_object_or_404(models.Titles, pk=title_id)
+        title = get_object_or_404(models.Title, pk=title_id)
         serializer.save(author=self.request.user, title=title)
+
+    def create(self, request, *args, **kwargs):
+        title_id = self.kwargs.get('title_pk')
+        title = get_object_or_404(models.Title, pk=title_id)
+        author = request.user
+        if models.Review.objects.filter(title=title, author=author).exists():
+            return Response(
+                {'detail': 'You have already reviewed this title.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return super().create(request, *args, **kwargs)
 
 
 class CommentViewSet(ModelViewSet):
