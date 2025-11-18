@@ -4,9 +4,12 @@ from rest_framework.exceptions import MethodNotAllowed, NotFound
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework import filters
 from rest_framework import permissions
 from rest_framework import status
+from rest_framework import pagination
 import rest_framework.serializers as serializers_rest
+from django_filters.rest_framework import DjangoFilterBackend
 
 from yamdb import models
 from . import serializers, permissions as custom_permissions
@@ -16,23 +19,57 @@ class CategoryViewSet(ModelViewSet):
     queryset = models.Category.objects.all()
     serializer_class = serializers.CategorySerializer
     lookup_field = 'slug'
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    permission_classes = (custom_permissions.IsNotUserAndModeratorOrReadOnly,)
 
     def update(self, request, *args, **kwargs):
         raise MethodNotAllowed(request.method)
+    
+    def retrieve(self, request, *args, **kwargs):
+        return Response(status=405)
 
 
 class GenreViewSet(ModelViewSet):
     queryset = models.Genre.objects.all()
     serializer_class = serializers.GenreSerializer
     lookup_field = 'slug'
+    permission_classes = (custom_permissions.IsNotUserAndModeratorOrReadOnly,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
     def update(self, request, *args, **kwargs):
-        raise MethodNotAllowed(request.method)    
+        raise MethodNotAllowed(request.method) 
+
+    def retrieve(self, request, *args, **kwargs):
+        return Response(status=405)   
 
 
 class TitleViewSet(ModelViewSet):
     queryset = models.Titles.objects.all()
     serializer_class = serializers.TitleSerializer
+    permission_classes = (custom_permissions.IsNotUserAndModeratorOrReadOnly,)
+    pagination_class = pagination.PageNumberPagination
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        genre = self.request.query_params.get('genre')
+        if genre:
+            queryset = queryset.filter(genre__slug=genre).distinct()
+
+        category = self.request.query_params.get('category')
+        if category:
+            queryset = queryset.filter(category__slug=category)
+
+        year = self.request.query_params.get('year')
+        if year:
+            queryset = queryset.filter(year=year)
+
+        name = self.request.query_params.get('name')
+        if name:
+            queryset = queryset.filter(name__icontains=name)
+        return queryset
+
 
 
 class ReviewViewSet(ModelViewSet):

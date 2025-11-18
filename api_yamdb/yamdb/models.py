@@ -36,6 +36,9 @@ class Category(models.Model):
     name = models.CharField(max_length=256)
     slug = models.SlugField(unique=True)
 
+    class Meta:
+        ordering = ['name']
+
     def __str__(self):
         return self.name
 
@@ -43,6 +46,9 @@ class Category(models.Model):
 class Genre(models.Model):
     name = models.CharField(max_length=256)
     slug = models.SlugField(unique=True)
+
+    class Meta:
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -60,6 +66,9 @@ class Titles(models.Model):
         null=True,
         related_name='titles'
     )
+
+    class Meta:
+        ordering = ['name']
 
 class Review(models.Model):
     title = models.ForeignKey(
