@@ -51,7 +51,13 @@ class Test05ReviewAPI:
             'нельзя добавить второй отзыв на то же самое произведение, и возвращается '
             f'статус {code}'
         )
-        from api_yamdb.yamdb.models import Review, Title
+        try:
+            from yamdb.models import Review, Title
+        except ImportError:
+            assert False, (
+                'Проверьте, что файл `models.py` в приложении `yamdb` содержит '
+                'модель `Review` и модель `Title`'
+            )
         from django.db.utils import IntegrityError
         title = Title.objects.get(pk=titles[0]["id"])
         review = None
