@@ -37,7 +37,7 @@ class TitleViewSet(ModelViewSet):
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = serializers.ReviewSerializer
-    permission_classes = (custom_permissions.IsNotUser,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get_queryset(self):
         title = self.kwargs.get('title_pk')
