@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404
+from django.db.models import Avg
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.exceptions import MethodNotAllowed, NotFound
 from rest_framework.decorators import action
@@ -6,6 +7,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions
 from rest_framework import status
+from rest_framework import pagination
+from rest_framework import filters
 import rest_framework.serializers as serializers_rest
 
 from yamdb import models
@@ -16,28 +19,61 @@ class CategoryViewSet(ModelViewSet):
     queryset = models.Category.objects.all()
     serializer_class = serializers.CategorySerializer
     lookup_field = 'slug'
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name']
+    permission_classes = (custom_permissions.IsNotUser, permissions.IsAuthenticatedOrReadOnly, custom_permissions.IsNotModerator)
 
     def update(self, request, *args, **kwargs):
         raise MethodNotAllowed(request.method)
+    
+    def retrieve(self, request, *args, **kwargs):
+        raise MethodNotAllowed('GET')
 
 
 class GenreViewSet(ModelViewSet):
     queryset = models.Genre.objects.all()
     serializer_class = serializers.GenreSerializer
     lookup_field = 'slug'
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name']
+    permission_classes = (custom_permissions.IsNotUser, permissions.IsAuthenticatedOrReadOnly, custom_permissions.IsNotModerator)   
 
     def update(self, request, *args, **kwargs):
-        raise MethodNotAllowed(request.method)    
+        raise MethodNotAllowed(request.method)  
+
+    def retrieve(self, request, *args, **kwargs):
+        raise MethodNotAllowed('GET')  
 
 
 class TitleViewSet(ModelViewSet):
-    queryset = models.Title.objects.all()
+    queryset = models.Title.objects.annotate(rating=Avg('reviews__score')).order_by('id')
     serializer_class = serializers.TitleSerializer
+    permission_classes = (custom_permissions.IsNotUser, custom_permissions.IsNotModerator, permissions.IsAuthenticatedOrReadOnly)
+
+    def get_queryset(self):
+        genre = self.request.query_params.get('genre')
+        if genre:
+            return self.queryset.filter(genre__slug=genre)
+
+        category = self.request.query_params.get('category')
+        if category:
+            return self.queryset.filter(category__slug=category)
+
+        year = self.request.query_params.get('year')
+        if year:
+            return self.queryset.filter(year=year)
+
+        name = self.request.query_params.get('name')
+        if name:
+            return self.queryset.filter(name__icontains=name)
+
+        return self.queryset
 
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = serializers.ReviewSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (custom_permissions.IsAuthorOrReadOnly, permissions.IsAuthenticatedOrReadOnly)
+    pagination_class = pagination.LimitOffsetPagination
 
     def get_queryset(self):
         title = self.kwargs.get('title_pk')
@@ -63,6 +99,7 @@ class ReviewViewSet(ModelViewSet):
 
 class CommentViewSet(ModelViewSet):
     serializer_class = serializers.CommentSerializer
+    permission_classes = (custom_permissions.IsAuthorOrReadOnly, permissions.IsAuthenticatedOrReadOnly)
 
     def get_queryset(self):
         review = self.kwargs.get('review_pk')

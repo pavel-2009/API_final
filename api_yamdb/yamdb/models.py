@@ -39,6 +39,9 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        ordering = ['name']
+
 
 class Genre(models.Model):
     name = models.CharField(max_length=256)
@@ -47,11 +50,12 @@ class Genre(models.Model):
     def __str__(self):
         return self.name
     
+    class Meta:
+        ordering = ['name']
 
 class Title(models.Model):
     name = models.CharField(max_length=256)
     year = models.IntegerField()
-    rating = models.IntegerField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     genre = models.ManyToManyField(Genre, related_name='titles')
     category = models.ForeignKey(
@@ -60,6 +64,9 @@ class Title(models.Model):
         null=True,
         related_name='titles'
     )
+
+    class Meta:
+        ordering = ['id']
 
 class Review(models.Model):
     title = models.ForeignKey(
@@ -76,6 +83,16 @@ class Review(models.Model):
     score = models.IntegerField()
     pub_date = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-pub_date']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['author', 'title'],
+                name='unique_review_per_user_per_title'
+            )
+        ]
+
+
 class Comment(models.Model):
     review = models.ForeignKey(
         Review,
@@ -89,3 +106,6 @@ class Comment(models.Model):
         related_name='comments'
     )
     pub_date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-pub_date']

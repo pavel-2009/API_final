@@ -11,6 +11,7 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Category
         fields = ['name', 'slug']
+        search_fields = ('name',)
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -28,6 +29,7 @@ class TitleSerializer(serializers.ModelSerializer):
         slug_field='slug',
         queryset=models.Genre.objects.all()
     )
+    rating = serializers.IntegerField(read_only=True)
 
 
     class Meta:
@@ -35,17 +37,15 @@ class TitleSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'year', 'rating', 'description',
                 'genre', 'category']
         
+    
+    
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        for key, value in representation.items():
-            if not value:
-                representation[key] = 0
+
+        representation['category'] = CategorySerializer(instance.category).data
+        representation['genre'] = GenreSerializer(instance.genre, many=True).data
+
         return representation
-    
-    def validate(self, attrs):
-        if attrs['year'] > datetime.now().year:
-            attrs['year'] = datetime.now().year
-        return attrs
         
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -62,10 +62,9 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        for key, value in representation.items():
-            if value is None and isinstance(value, (int, float)):
-                representation[key] = 0
+        representation['author'] = instance.author.username
         return representation
+        
 
 
 
