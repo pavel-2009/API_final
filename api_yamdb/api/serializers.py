@@ -11,7 +11,6 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Category
         fields = ['name', 'slug']
-        search_fields = ('name',)
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -25,26 +24,24 @@ class TitleSerializer(serializers.ModelSerializer):
         queryset=models.Category.objects.all()
     )
     genre = serializers.SlugRelatedField(
-        many=True,
         slug_field='slug',
-        queryset=models.Genre.objects.all()
+        queryset=models.Genre.objects.all(),
+        many=True
     )
-    rating = serializers.IntegerField(read_only=True)
 
 
     class Meta:
-        model = models.Title
+        model = models.Titles
         fields = ['id', 'name', 'year', 'rating', 'description',
                 'genre', 'category']
         
     
-    
+
+
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-
         representation['category'] = CategorySerializer(instance.category).data
         representation['genre'] = GenreSerializer(instance.genre, many=True).data
-
         return representation
         
 
@@ -62,9 +59,10 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation['author'] = instance.author.username
+        for key, value in representation.items():
+            if value is None and isinstance(value, (int, float)):
+                representation[key] = 0
         return representation
-        
 
 
 
