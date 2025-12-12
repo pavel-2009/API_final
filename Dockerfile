@@ -10,4 +10,4 @@ COPY api_yamdb/ /app
 
 WORKDIR /app
 
-CMD ["gunicorn", "api_yamdb.wsgi:application", "--bind", "0:8000" ] 
+CMD sh -c "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn api_yamdb.wsgi:application --bind 0.0.0.0:8000"

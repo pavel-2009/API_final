@@ -1,8 +1,6 @@
 import os
 from datetime import timedelta
-from dotenv import load_dotenv
 
-load_dotenv()
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -112,10 +110,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 
 STATIC_URL = '/static/'
-STATIC_ROOT = '/var/html/static/'
+STATIC_ROOT = '/app/static/'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = '/var/html/media/'
+MEDIA_ROOT = '/app/media/'
 
 # STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
 
