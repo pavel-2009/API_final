@@ -1,6 +1,5 @@
 from rest_framework.routers import DefaultRouter
 from rest_framework_nested.routers import NestedSimpleRouter
-from djoser.views import TokenCreateView
 from django.urls import path, include
 
 from . import views
@@ -14,8 +13,16 @@ router.register('users', views.UserViewSet, 'users')
 reviews_router = NestedSimpleRouter(router, r'titles', lookup='title')
 reviews_router.register('reviews', views.ReviewViewSet, basename='reviews')
 
-comments_router = NestedSimpleRouter(reviews_router, r'reviews', lookup='review')
-comments_router.register('comments', views.CommentViewSet, basename='comments')
+comments_router = NestedSimpleRouter(
+    reviews_router,
+    r'reviews',
+    lookup='review',
+)
+comments_router.register(
+    'comments',
+    views.CommentViewSet,
+    basename='comments',
+)
 
 urlpatterns = [
     path('api/v1/', include(router.urls)),
@@ -24,5 +31,3 @@ urlpatterns = [
     path('api/v1/auth/token/', views.TokenByCodeView.as_view(), name='token'),
     path('api/v1/auth/signup/', views.RegisterView.as_view(), name='signup'),
 ]
-
-

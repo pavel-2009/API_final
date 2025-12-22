@@ -27,7 +27,8 @@ INSTALLED_APPS = [
     'yamdb.apps.YamdbConfig',
     'api.apps.ApiConfig',
     'rest_framework',
-    'rest_framework_simplejwt'
+    'rest_framework_simplejwt',
+    'rest_framework_nested',
 ]
 
 MIDDLEWARE = [
@@ -73,7 +74,7 @@ DATABASES = {
         'HOST': os.getenv('DB_HOST'),
         'PORT': os.getenv('DB_PORT')
     }
-}   
+}
 
 
 # Password validation

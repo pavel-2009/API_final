@@ -1,8 +1,6 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.exceptions import NotFound
 from django.core.mail import send_mail
-from datetime import datetime
 
 from yamdb import models
 
@@ -18,6 +16,7 @@ class GenreSerializer(serializers.ModelSerializer):
         model = models.Genre
         fields = ['name', 'slug']
 
+
 class TitleSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
         slug_field='slug',
@@ -29,21 +28,21 @@ class TitleSerializer(serializers.ModelSerializer):
         many=True
     )
 
-
     class Meta:
         model = models.Title
         fields = ['id', 'name', 'year', 'rating', 'description',
-                'genre', 'category']
-        
-    
-
+                  'genre', 'category']
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation['category'] = CategorySerializer(instance.category).data
-        representation['genre'] = GenreSerializer(instance.genre, many=True).data
+        representation['category'] = CategorySerializer(
+            instance.category
+        ).data
+        representation['genre'] = GenreSerializer(
+            instance.genre, many=True
+        ).data
         return representation
-        
+
 
 class ReviewSerializer(serializers.ModelSerializer):
 
@@ -53,8 +52,8 @@ class ReviewSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'text': {'required': True},
             'score': {'required': True},
-            'author': {'read_only': True},  
-            'title': {'read_only': True},   
+            'author': {'read_only': True},
+            'title': {'read_only': True},
         }
 
     def to_representation(self, instance):
@@ -65,11 +64,10 @@ class ReviewSerializer(serializers.ModelSerializer):
         return representation
 
 
-
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
-        slug_field = 'username',
-        read_only = True
+        slug_field='username',
+        read_only=True
     )
 
     class Meta:
@@ -77,8 +75,8 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ['id', 'text', 'author', 'pub_date']
         extra_kwargs = {
             'text': {'required': True},
-            'author': {'read_only': True},  
-            'title': {'read_only': True},   
+            'author': {'read_only': True},
+            'title': {'read_only': True},
         }
 
     def to_representation(self, instance):
@@ -92,7 +90,8 @@ class CommentSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.User
-        fields = ['username', 'email', 'first_name', 'last_name', 'bio', 'role']
+        fields = ['username', 'email', 'first_name', 'last_name', 'bio',
+                  'role']
         extra_kwargs = {
             'username': {'required': True},
             'email': {'required': True}
@@ -102,12 +101,17 @@ class UserSerializer(serializers.ModelSerializer):
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.User
-        fields = ['username','email']
+        fields = ['username', 'email']
 
     def create(self, validated_data):
         if validated_data['username'] == 'me':
-            raise serializers.ValidationError("Использование 'me' в качестве username запрещено.")
-        user = models.User.objects.create(username=validated_data['username'], email=validated_data['email'])
+            raise serializers.ValidationError(
+                "Использование 'me' в качестве username запрещено."
+            )
+        user = models.User.objects.create(
+            username=validated_data['username'],
+            email=validated_data['email']
+        )
         user.set_unusable_password()
         user.save()
 
@@ -140,11 +144,12 @@ class TokenSerializer(serializers.Serializer):
         try:
             user_code = models.EmailCode.objects.get(user=user)
         except models.EmailCode.DoesNotExist:
-            raise serializers.ValidationError("Код для пользователя не найден")
+            raise serializers.ValidationError(
+                "Код для пользователя не найден"
+            )
 
         if user_code.code != code:
             raise serializers.ValidationError("Неверный код")
-
 
         self.user = user
         return attrs

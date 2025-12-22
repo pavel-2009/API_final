@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from random import randint
 
+
 class User(AbstractUser):
     class Role(models.TextChoices):
         USER = 'user', 'User'
@@ -27,7 +28,7 @@ class EmailCode(models.Model):
     @staticmethod
     def get_code():
         return str(randint(100000, 999999))
-    
+
     def __str__(self):
         return f"{self.code}"
 
@@ -49,9 +50,10 @@ class Genre(models.Model):
 
     def __str__(self):
         return self.name
-    
+
     class Meta:
         ordering = ['name']
+
 
 class Title(models.Model):
     name = models.CharField(max_length=256)
@@ -67,6 +69,7 @@ class Title(models.Model):
 
     class Meta:
         ordering = ['id']
+
 
 class Review(models.Model):
     title = models.ForeignKey(

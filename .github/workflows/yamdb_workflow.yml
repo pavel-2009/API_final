@@ -17,7 +17,7 @@ jobs:
       - name: Check code style with flake8
         run: |
           pip install flake8
-          flake8 --max-line-length=120 --exclude=env,venv,.venv
+          flake8 --max-line-length=120 --exclude=env,venv,.venv,migrations --ignore=W503,W504
 
       - name: Run tests with pytest
         run: |

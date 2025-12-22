@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404
 from django.db.models import Avg
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.exceptions import MethodNotAllowed, NotFound
@@ -21,11 +21,13 @@ class CategoryViewSet(ModelViewSet):
     lookup_field = 'slug'
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
-    permission_classes = (custom_permissions.IsNotUser, permissions.IsAuthenticatedOrReadOnly, custom_permissions.IsNotModerator)
+    permission_classes = (custom_permissions.IsNotUser,
+                          permissions.IsAuthenticatedOrReadOnly,
+                          custom_permissions.IsNotModerator)
 
     def update(self, request, *args, **kwargs):
         raise MethodNotAllowed(request.method)
-    
+
     def retrieve(self, request, *args, **kwargs):
         raise MethodNotAllowed('GET')
 
@@ -36,19 +38,25 @@ class GenreViewSet(ModelViewSet):
     lookup_field = 'slug'
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
-    permission_classes = (custom_permissions.IsNotUser, permissions.IsAuthenticatedOrReadOnly, custom_permissions.IsNotModerator)   
+    permission_classes = (custom_permissions.IsNotUser,
+                          permissions.IsAuthenticatedOrReadOnly,
+                          custom_permissions.IsNotModerator)
 
     def update(self, request, *args, **kwargs):
-        raise MethodNotAllowed(request.method)  
+        raise MethodNotAllowed(request.method)
 
     def retrieve(self, request, *args, **kwargs):
-        raise MethodNotAllowed('GET')  
+        raise MethodNotAllowed('GET')
 
 
 class TitleViewSet(ModelViewSet):
-    queryset = models.Title.objects.annotate(rating=Avg('reviews__score')).order_by('id')
+    queryset = models.Title.objects.annotate(
+        rating=Avg('reviews__score')
+    ).order_by('id')
     serializer_class = serializers.TitleSerializer
-    permission_classes = (custom_permissions.IsNotUser, custom_permissions.IsNotModerator, permissions.IsAuthenticatedOrReadOnly)
+    permission_classes = (custom_permissions.IsNotUser,
+                          custom_permissions.IsNotModerator,
+                          permissions.IsAuthenticatedOrReadOnly)
 
     def get_queryset(self):
         genre = self.request.query_params.get('genre')
@@ -72,14 +80,15 @@ class TitleViewSet(ModelViewSet):
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = serializers.ReviewSerializer
-    permission_classes = (custom_permissions.IsAuthorOrReadOnly, permissions.IsAuthenticatedOrReadOnly)
+    permission_classes = (custom_permissions.IsAuthorOrReadOnly,
+                          permissions.IsAuthenticatedOrReadOnly)
     pagination_class = pagination.LimitOffsetPagination
 
     def get_queryset(self):
         title = self.kwargs.get('title_pk')
         objects = get_object_or_404(models.Title, pk=title)
         return objects.reviews.all()
-    
+
     def perform_create(self, serializer):
         title_id = self.kwargs.get('title_pk')
         title = get_object_or_404(models.Title, pk=title_id)
@@ -89,7 +98,8 @@ class ReviewViewSet(ModelViewSet):
         title_id = self.kwargs.get('title_pk')
         title = get_object_or_404(models.Title, pk=title_id)
         author = request.user
-        if models.Review.objects.filter(title=title, author=author).exists():
+        if models.Review.objects.filter(title=title,
+                                        author=author).exists():
             return Response(
                 {'detail': 'You have already reviewed this title.'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -99,13 +109,14 @@ class ReviewViewSet(ModelViewSet):
 
 class CommentViewSet(ModelViewSet):
     serializer_class = serializers.CommentSerializer
-    permission_classes = (custom_permissions.IsAuthorOrReadOnly, permissions.IsAuthenticatedOrReadOnly)
+    permission_classes = (custom_permissions.IsAuthorOrReadOnly,
+                          permissions.IsAuthenticatedOrReadOnly)
 
     def get_queryset(self):
         review = self.kwargs.get('review_pk')
         objects = get_object_or_404(models.Review, pk=review)
         return objects.comments.all()
-    
+
     def perform_create(self, serializer):
         review_id = self.kwargs.get('review_pk')
         review = get_object_or_404(models.Review, pk=review_id)
@@ -133,7 +144,7 @@ class UserViewSet(ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save(role=request.user.role)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        
+
 
 class RegisterView(APIView):
     permission_classes = tuple()
@@ -141,8 +152,10 @@ class RegisterView(APIView):
     def post(self, request):
         serializer = serializers.RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()  
-        return Response({'username': user.username, 'email': user.email}, status=status.HTTP_200_OK)
+        user = serializer.save()
+        return Response({'username': user.username, 'email': user.email},
+                        status=status.HTTP_200_OK)
+
 
 class TokenByCodeView(APIView):
     permission_classes = []
@@ -151,7 +164,9 @@ class TokenByCodeView(APIView):
         username = request.data.get('username')
 
         if not username:
-            raise serializers_rest.ValidationError({"username": "Это поле обязательно."})
+            raise serializers_rest.ValidationError(
+                {"username": "Это поле обязательно."}
+            )
         try:
             user = models.User.objects.get(username=username)
         except models.User.DoesNotExist:
