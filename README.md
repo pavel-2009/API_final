@@ -1,5 +1,7 @@
 # YamDB API
 
+[![Tests](https://github.com/YOUR_USERNAME/api_yamdb/workflows/tests/badge.svg)](https://github.com/YOUR_USERNAME/api_yamdb/actions/workflows/tests.yml)
+
 API для базы данных рецензий на произведения (фильмы, книги и музыка).
 
 ## Описание
